@@ -4,12 +4,10 @@
 #include <inttypes.h>
 #include <math.h>
 
-#define MAX 5000
+#define MAX 200
 #define START 1
 
 static char seats[MAX][MAX], copy[MAX][MAX];
-
-//static char *seats[5000], *seats2[5000], dummy[5000];
 
 char *mygetline(FILE *f)
 {
@@ -30,12 +28,13 @@ char *mygetline(FILE *f)
 
 int same(char seats[MAX][MAX], char seats2[MAX][MAX])
 {
-    // for (size_t i = 1; i < h; i++) {
-    //     for (size_t j = 1; j < w; j++) {
-    //         if (seats[i][j] != seats2[i][j])
-    //             return 0;
-    //     }
-    // }
+    for (size_t i = 0; i < MAX; i++) {
+        for (size_t j = 0; j < MAX; j++) {
+            if (seats[i][j] != seats2[i][j]) {
+                return 0;
+            }
+        }
+    }
     return 1;
 }
 
@@ -54,14 +53,12 @@ void step(char src[MAX][MAX], char next[MAX][MAX])
 {
     for (size_t y = 1; y < MAX-1; y++) {
         for (size_t x = 1; x < MAX-1; x++) {
+            int n = check(src, y, x) - (src[y][x] == '#');
             switch (src[y][x]) {
-            case 'L': break;
-            case '#': break;
-            case '.': break;
-            case '\0': break;
+            case 'L': next[y][x] = (n == 0 ? '#' : 'L'); break;
+            case '#': next[y][x] = (n >= 4 ? 'L' : '#'); break;break;
+            case '.': case '\0': next[y][x] = '.'; break;
             }
-            // case 'L': n[i][j] = nseats_occ(s, i, j) == 0 ? '#' : 'L'; break;
-            // case '#': n[i][j] = nseats_occ(s, i, j) >= 4 ? 'L' : '#'; break;
         }
     }
 }
@@ -92,7 +89,7 @@ int main()
     char *line;
     size_t i = START;
     while (line = mygetline(infile), line != NULL) {
-        strcpy(seats[START] + i, line);
+        strcpy(seats[i] + START, line);
         free(line);
         i++;
     }
@@ -100,12 +97,15 @@ int main()
     size_t len = START + strlen(seats[START] + START);
     size_t steps = 0;
     do {
+        printf("%lu\n", steps);
+        putchar('\n');
+        print(s1, START, len);
         step(s1, s2);
         steps++;
         char (*tmp)[MAX] = s1;
         s1 = s2;
         s2 = tmp;
     } while(!same(s1, s2));
-    printf("%lu %lu\n", count(s1), steps);
+    printf("nseats:%lu steps:%lu\n", count(s1), steps);
 }
 
