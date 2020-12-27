@@ -3,55 +3,64 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace PuzzleNamespace {
+namespace NS {
     class Puzzle {
-        static List<int> instrArr = new List<int>();
-        static List<int> oparr    = new List<int>();
-        static List<bool> executed = new List<bool>(instrArr.Count());
-        static int accum, pc;
+        static List<int> opArr = new List<int>();
+        static int accum = 0, pc = 0;
 
-        static Tuple<int, int> parseLine(string line)
+        static Dictionary<string, int> opDict = new Dictionary<string, int> { { "nop", 0 }, { "acc", 1 }, { "jmp", 2 } };
+        static Tuple<int, int> parseLine(string[] splitted) { return new Tuple<int, int>(opDict[splitted[0]], int.Parse(splitted[1])); }
+
+        static void exec(List<int> instructions, List<bool> executed)
         {
-            string[] splitted = line.Split(' ');
-            char[] chararr = splitted[1].ToCharArray();
-            if (chararr[0] == '+') chararr[0] = '0';
-            switch (splitted[0]) {
-            case "nop": return new Tuple<int, int>(0, int.Parse(chararr));
-            case "acc": return new Tuple<int, int>(1, int.Parse(chararr));
-            case "jmp": return new Tuple<int, int>(2, int.Parse(chararr));
-            default: return null;
+            executed[pc] = true;
+            switch (instructions[pc]) {
+            case 0: pc++; break;
+            case 1: accum += opArr[pc]; pc++; break;
+            case 2: pc += opArr[pc]; break;
             }
         }
         
-        static void exec(int op)
+        static bool test(List<int> instructions, List<bool> executed)
         {
-            Console.WriteLine("{0} {1} accum: {2} pc: {3}", disass(instrArr[pc]), instrArr[pc+1], accum, pc);
-            executed[pc] = executed[pc+1] = true;
-            switch (op) {
-            case 0: pc+=2; break;
-            case 1: accum += instrArr[pc+1]; pc+=2; break;
-            case 2: pc += instrArr[pc+1]*2; break;
+            accum = pc = 0;
+            while (pc < instructions.Count()) {
+                if (executed[pc]) return false;
+                exec(instructions, executed);
+            }
+            Console.WriteLine(accum);
+            return true;
+        }
+        
+        static void part1(List<int> instrArr, List<bool> executed)
+        {
+            while (!executed[pc])
+                exec(instrArr, executed);
+            Console.WriteLine(accum);
+        }
+
+        static void part2(List<int> instrArr, List<bool> executed)
+        {
+            int i = 0;
+            int last_op = instrArr[i];
+            // brute force solution
+            while (!test(instrArr, new List<bool>(executed))) {
+                instrArr[i] = last_op;
+                while (++i < instrArr.Count() && instrArr[i] == 1)
+                    ;
+                if (i == instrArr.Count()) return;
+                last_op = instrArr[i];
+                instrArr[i] = (instrArr[i] == 0) ? 2 : 0;
             }
         }
 
         static void Main(string[] args)
         {
-            File.ReadAllLines("input8.txt").ToList().Select(line => parseLine(line)).ToList().ForEach(t => {
-                    executed.Add(false); executed.Add(false);
-                    instrArr.Add(t.Item1); instrArr.Add(t.Item2); });
-            while (!executed[pc])
-                exec(instrArr[pc]);
-            Console.WriteLine(accum);
-        }
-
-        static string disass(int instr)
-        {
-            switch(instr) {
-            case 0: return "nop";
-            case 1: return "acc";
-            case 2: return "jmp";
-            default: return null;
-            }
+            List<int>  instrArr = new List<int>();
+            List<bool> executed = new List<bool>(instrArr.Count());
+            File.ReadAllLines("input08.txt").ToList().Select(line => parseLine(line.Replace('+', '0').Split(' '))).ToList().ForEach(t => {
+                    executed.Add(false); instrArr.Add(t.Item1); opArr.Add(t.Item2); });
+            part1(instrArr, executed);
         }
     }
 }
