@@ -6,6 +6,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <cmath>
+#include <string_view>
 
 inline std::string getstr(std::stringstream &ss) { std::string tmp; ss >> tmp; return tmp; }
 
@@ -16,20 +17,17 @@ void main()
     std::ifstream infile("input14.txt");
     uint64_t mask, inverse;
     for (std::string line; std::getline(infile, line); ) {
-        std::stringstream ss(line);
-        auto s = getstr(ss);
-        if (s.c_str()[1] == 'a') {
-            getstr(ss); // skip '='
+        if (line[1] == 'a') {
             int i = 35;
             mask = inverse = 0;
-            for (auto c : getstr(ss)) {
+            for (auto c : std::string_view(line).substr(7)) {
                 mask    |= (uint64_t) (c == 'X' ? 0 : c - '0') << i;
                 inverse |= (uint64_t) (c != 'X') << i--;
             }
             inverse = ~inverse;
         } else {
-            uint64_t addr = std::stoi(std::string(s.begin() + 4, s.begin() + s.find(']')));
-            getstr(ss); // skip '='
+            uint64_t addr = std::stoi(std::string(line.begin() + 4, line.begin() + line.find(']')));
+            std::stringstream ss(line); getstr(ss); getstr(ss); // skip '='
             uint64_t data = std::stoi(getstr(ss));
             mem[addr] = (data & inverse) | mask;
         }
@@ -64,14 +62,11 @@ void main()
     std::vector<uint64_t> combs;
     uint64_t mask, inverse;
     for (std::string line; std::getline(infile, line); ) {
-        std::stringstream ss(line);
-        auto s = getstr(ss);
-        if (s.c_str()[1] == 'a') {
+        if (line[1] == 'a') {
             int i = 35;
             std::vector<int> positions;
-            getstr(ss); // skip '='
             mask = inverse = 0;
-            for (auto c : getstr(ss)) {
+            for (auto c : std::string_view(line).substr(7)) {
                 if (c == 'X')
                     positions.push_back(i);
                 mask |= (uint64_t) (c == 'X' ? 0 : c - '0') << i;
@@ -81,8 +76,8 @@ void main()
             inverse = ~inverse;
             combs = bit_combs(positions);
         } else {
-            uint64_t addr = std::stoi(std::string(s.begin() + 4, s.begin() + s.find(']')));
-            getstr(ss); // skip '='
+            uint64_t addr = std::stoi(std::string(line.begin() + 4, line.begin() + line.find(']')));
+            std::stringstream ss(line); getstr(ss); getstr(ss); // skip '='
             uint64_t data = std::stoi(getstr(ss));
             for (auto x : combs) {
                 uint64_t real_addr = ((addr | mask) & inverse) | x;
