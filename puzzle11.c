@@ -28,39 +28,48 @@ char *mygetline(FILE *f)
 
 int same(char seats[MAX][MAX], char seats2[MAX][MAX])
 {
-    for (size_t i = 0; i < MAX; i++) {
-        for (size_t j = 0; j < MAX; j++) {
-            if (seats[i][j] != seats2[i][j]) {
+    for (size_t i = 0; i < MAX; i++)
+        for (size_t j = 0; j < MAX; j++)
+            if (seats[i][j] != seats2[i][j])
                 return 0;
-            }
-        }
-    }
     return 1;
 }
 
 int check(char s[MAX][MAX], size_t y, size_t x)
 {
-    char a = s[y-1][x-1]; char b = s[y-1][x  ];
-    char c = s[y-1][x+1]; char d = s[y  ][x-1];
-    char e = s[y  ][x  ]; char f = s[y  ][x+1];
-    char g = s[y+1][x-1]; char h = s[y+1][x  ];
-    char i = s[y+1][x+1];
+    char a = s[y-1][x-1]; char b = s[y-1][x  ]; char c = s[y-1][x+1];
+    char d = s[y  ][x-1]; char f = s[y  ][x+1];
+    char g = s[y+1][x-1]; char h = s[y+1][x  ]; char i = s[y+1][x+1];
     return (a == '#') + (b == '#') + (c == '#') + (d == '#') +
-           (e == '#') + (f == '#') + (g == '#') + (h == '#') + (i == '#');
+           (f == '#') + (g == '#') + (h == '#') + (i == '#');
 }
 
-void step(char src[MAX][MAX], char next[MAX][MAX])
+int find_seat(char s[MAX][MAX], size_t y, size_t x, int yinc, int xinc)
 {
-    for (size_t y = 1; y < MAX-1; y++) {
+    int i = 0, j = 0;
+    int i_max = (MAX + (MAX * yinc))/2 - y;
+    int j_max = (MAX + (MAX * xinc))/2 - x;
+    while (i += yinc, j += xinc, i != i_max && j != j_max && s[y+i][x+j] == '.')
+        ;
+    return s[y+i][x+j] == '#';
+}
+
+int check2(char s[MAX][MAX], size_t y, size_t x)
+{
+    return find_seat(s, y, x,  1,  0) + find_seat(s, y, x, -1,  0) + find_seat(s, y, x,  0,  1) + find_seat(s, y, x,  0, -1) +
+           find_seat(s, y, x,  1,  1) + find_seat(s, y, x, -1,  1) + find_seat(s, y, x,  1, -1) + find_seat(s, y, x, -1, -1);
+}
+
+void step(char src[MAX][MAX], char next[MAX][MAX], int n_occ_if_occ, int (*check_seats)(char (*)[MAX], size_t, size_t))
+{
+    for (size_t y = 1; y < MAX-1; y++)
         for (size_t x = 1; x < MAX-1; x++) {
-            int n = check(src, y, x) - (src[y][x] == '#');
             switch (src[y][x]) {
-            case 'L': next[y][x] = (n == 0 ? '#' : 'L'); break;
-            case '#': next[y][x] = (n >= 4 ? 'L' : '#'); break;break;
+            case 'L': next[y][x] = (check_seats(src, y, x) == 0            ? '#' : 'L'); break;
+            case '#': next[y][x] = (check_seats(src, y, x) >= n_occ_if_occ ? 'L' : '#'); break;
             case '.': case '\0': next[y][x] = '.'; break;
             }
         }
-    }
 }
 
 void print(char s[MAX][MAX], size_t start, size_t len)
@@ -97,15 +106,15 @@ int main()
     size_t len = START + strlen(seats[START] + START);
     size_t steps = 0;
     do {
-        printf("%lu\n", steps);
-        putchar('\n');
-        print(s1, START, len);
-        step(s1, s2);
+        // part 1:
+        // step(s1, s2, 4, check);
+        // part 2:
+        step(s1, s2, 5, check2);
         steps++;
         char (*tmp)[MAX] = s1;
         s1 = s2;
         s2 = tmp;
     } while(!same(s1, s2));
-    printf("nseats:%lu steps:%lu\n", count(s1), steps);
+    printf("%lu\n", count(s1));
 }
 
