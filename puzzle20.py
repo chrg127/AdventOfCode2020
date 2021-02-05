@@ -153,7 +153,7 @@ def apply_transform(srcn, dstn, srcm, dstm):
 
 # adjust: fix the link between n and m
 def adjust(currlink, tab, n, m, side_n, side_m, or_tab):
-    # print("adjusting " + str(n) + "->" + str(m) + " change: (" + str(currlink.myside) + "," + str(currlink.otherside) + ")->(" + str(side_n) + "," + str(side_m) + ")")
+    print("    adjusting " + str(n) + "->" + str(m) + " change: (" + str(currlink.myside) + "," + str(currlink.otherside) + ")->(" + str(side_n) + "," + str(side_m) + ")")
     f = apply_transform(currlink.myside, side_n, currlink.otherside, side_m)
     # GOD FUCKING DAMMIT
     tmp_side_n = side_n
@@ -172,6 +172,8 @@ def adjust(currlink, tab, n, m, side_n, side_m, or_tab):
         otherlink = search(tab[link.num], m)
         # print(str(link.num) + "->" + str(m) + ": " + str(otherlink.otherside) + "->" + str(newvalue))
         otherlink.otherside = newvalue
+    if m == 1033:
+        print("1033: " + str(tab[1033]))
 
 def find_start_pos(tab, startnode, line_len):
     arr = tab[startnode]
@@ -209,7 +211,8 @@ def rebuild_image(nums, patt, tab):
                 elif link.otherside != mutual_sides[link.myside]:
                     adjust(link, tab, n, link.num, link.myside, mutual_sides[link.myside], orientation_tab)
             if not visited_nodes[link.num]:
-                # print("deciding pos: bposx=" + str(bposx) + ", bposy:" + str(bposy) + ", myside:" + str(link.myside))
+                # if link.myside != 1 and link.myside != 0: print("==== possible error now ====")
+                # print(link.myside)
                 tmpx = bposx + ([0, 10, 0, -10][link.myside])
                 tmpy = bposy + ([-10, 0, 10, 0][link.myside])
                 print("inserting " + str(link.num) + ", " + str(bposx) + "," + str(bposy) + " " + str(tmpx) + "," + str(tmpy))
@@ -286,8 +289,8 @@ def part2(nums, patt, tab):
         nhashes = count_hashes(tmpbuf, ntl*8)
         print("sea monsters found: " + str(nmonsters) + ", number of #: " + str(nhashes))
 
-filename = "aaa.txt"
-# filename = "input20.txt"
+# filename = "aaa.txt"
+filename = "input20.txt"
 lines = list(filter(lambda x: x != "", [l.strip() for l in open(filename)]))
 nums, patterns = [], []
 for i in range(0, len(lines), 11):
